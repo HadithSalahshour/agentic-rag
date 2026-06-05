@@ -1,0 +1,17 @@
+[
+  {
+    "query": "what does the document say about training data?",
+    "expected": "RAG doesn't rely solely on training data, it fetches context from a knowledge base",
+    "route": "retrieve"
+  },
+  {
+    "query": "what is the capital of France?",
+    "expected": "Paris",
+    "route": "direct"
+  },
+  {
+    "query": "what does the document say about accuracy?",
+    "expected": "RAG makes responses more accurate and grounded in real sources",
+    "route": "retrieve"
+  }
+]
