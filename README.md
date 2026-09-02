@@ -62,6 +62,13 @@ Baseline comparison (naive RAG, no router, no critique) scores 3.1 / 5 on the sa
 
 ---
 
+## Current limitations
+
+- Evaluation currently uses a 30-question dataset focused on FastAPI documentation.
+- The reported results should not be generalized to every knowledge base.
+- Running the complete pipeline requires Qdrant and an external LLM.
+- Retrieval quality depends on the coverage and quality of the indexed documents.
+
 ## Components
 
 ### Ingestion pipeline
