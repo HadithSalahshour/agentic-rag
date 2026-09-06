@@ -18,32 +18,26 @@ The agent decides whether to retrieve at all, how to retrieve, whether the answe
 
 ## Architecture
 
-```
-Query
-  │
-  ▼
-Query Router ──── direct (general knowledge, skip retrieval)
-  │           ├── retrieve (document lookup, single pass)
-  │           └── multi_hop (chained retrieval across sources)
-  │
-  ▼
-Hybrid Retrieval Engine
-  ├── Dense search (sentence-transformers embeddings + Qdrant)
-  ├── BM25 keyword search (rank_bm25)
-  └── Reciprocal Rank Fusion (merges both lists without score tuning)
-  │
-  ▼
-Generator (Claude API, grounded prompt)
-  │
-  ▼
-SELF-RAG Critique Loop
-  ├── Score each claim against retrieved chunks
-  ├── Flag: fully_supported / partially_supported / not_supported
-  ├── Re-retrieve for unsupported claims
-  └── Loop up to 3 iterations, then output with transparency
-  │
-  ▼
-Answer + grounding score + route + iteration count
+```mermaid
+flowchart TD
+    Q[User question] --> R{What kind of question is this?}
+
+    R -->|General question| D[Answer directly with Claude]
+    R -->|Needs documentation| H[Search the knowledge base]
+    R -->|Needs multiple sources| H
+
+    H --> V[Semantic search with Qdrant]
+    H --> B[Keyword search with BM25]
+    V --> F[Combine and rank the results]
+    B --> F
+
+    F --> G[Generate an answer from the retrieved sources]
+    G --> C{Are all claims supported?}
+
+    C -->|Yes| O[Return the final response]
+    C -->|No: retry up to 3 times| X[Search again using an unsupported claim]
+    X --> H
+    D --> O
 ```
 
 ---
