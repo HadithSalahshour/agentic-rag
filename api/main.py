@@ -40,12 +40,21 @@ def startup():
 @app.post("/ingest")
 def ingest(req: IngestRequest):
     global _chunks
+
     doc = load(req.filepath)
-    _chunks = chunk(doc)
-    embeddings = embed([c["text"] for c in _chunks])
-    store(_chunks, embeddings)
+    new_chunks = chunk(doc)
+
+    embeddings = embed([c["text"] for c in new_chunks])
+    store(new_chunks, embeddings)
+
+    _chunks.extend(new_chunks)
     build_index(_chunks)
-    return {"status": "ok", "chunks": len(_chunks)}
+
+    return {
+        "status": "ok",
+        "chunks": len(new_chunks),
+        "total_chunks": len(_chunks),
+    }
 
 @app.post("/query")
 def query(req: QueryRequest):
