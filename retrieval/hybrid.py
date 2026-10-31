@@ -1,24 +1,49 @@
-from retrieval.dense import dense_search
 from retrieval.bm25 import bm25_search
+from retrieval.dense import dense_search
 
-def rrf(dense_hits: list[dict], bm25_hits: list[dict], k: int = 60) -> list[dict]:
+
+def _chunk_key(chunk: dict) -> tuple:
+    """Identify a chunk using its document provenance and position."""
+    return (
+        chunk.get("source"),
+        chunk.get("filename"),
+        chunk.get("chunk_index"),
+        chunk.get("text"),
+    )
+
+
+def rrf(
+    dense_hits: list[dict],
+    bm25_hits: list[dict],
+    k: int = 60,
+) -> list[dict]:
     scores = {}
     all_chunks = {}
 
     for rank, chunk in enumerate(dense_hits):
-        key = chunk["text"]
+        key = _chunk_key(chunk)
         scores[key] = scores.get(key, 0) + 1 / (rank + k)
         all_chunks[key] = chunk
 
     for rank, chunk in enumerate(bm25_hits):
-        key = chunk["text"]
+        key = _chunk_key(chunk)
         scores[key] = scores.get(key, 0) + 1 / (rank + k)
         all_chunks[key] = chunk
 
-    ranked = sorted(scores, key=scores.get, reverse=True)
+    ranked = sorted(
+        scores,
+        key=scores.get,
+        reverse=True,
+    )
+
     return [all_chunks[key] for key in ranked]
 
-def hybrid_search(query: str, top_k: int = 5) -> list[dict]:
+
+def hybrid_search(
+    query: str,
+    top_k: int = 5,
+) -> list[dict]:
     dense_hits = dense_search(query, top_k)
     bm25_hits = bm25_search(query, top_k)
+
     return rrf(dense_hits, bm25_hits)[:top_k]
